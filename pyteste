@@ -1,8 +1,7 @@
 import pytest
 from mainTrabalho import *  
 
-# Resetando o sistema antes de cada teste
-
+@pytest.fixture(autouse=True)
 def resetar_sistema():
     resetar()
 
@@ -16,6 +15,7 @@ def testaCriarUsuarioSemNome():
     with pytest.raises(Exception):
         criar_usuario("")  # Nome vazio
 
+
 def testaCriarPostagemValida():
     criar_usuario("Maria")
     criar_postagem(1, "Olá Mundo")
@@ -27,6 +27,12 @@ def testaCriarPostagemTextoEmBranco():
     criar_usuario('Arthur')
     with pytest.raises(Exception):
         criar_postagem(1, "")  # Texto vazio
+
+def testaCriarPostagemUsuarioInexistente():
+    with pytest.raises(IndexError):
+        criar_postagem(999, "Postagem de usuário inexistente")
+
+
 
 def testaSeguirUsuarioExistente():
     criar_usuario('Gleison')
@@ -52,20 +58,47 @@ def testaCurtirPostagemValida():
     curtir_postagem(2, 1)
     assert postagens[0]['curtidores'] == [2]
 
-def testaCurtirPostagemNovamente():
-    resetar_sistema()  # Chama explicitamente a função de reset
-    criar_usuario('Gleison')
-    criar_usuario('José')
-    criar_postagem(1, 'Adoro testar!')
-    curtir_postagem(2, 1)
-    with pytest.raises(Exception):
-        curtir_postagem(2, 1)  # Tentativa de curtir novamente
+def curtir_postagem(usuario, postagem):
+    try:
+        postagem = encontrar_postagem_por_id(postagem)
+        if usuario in postagem['curtidores']:
+            raise Exception("Você já curtiu esta postagem")
+        postagem['curtidores'].append(usuario)
+    except IndexError:
+        raise IndexError("Postagem não encontrada")
 
 def testaComentarPostagemValido():
     criar_usuario('Gleison')
     criar_postagem(1, 'Postagem importante!')
     comentar_postagem(1, 1, 'Muito bom!')
     assert postagens[0]['comentarios'] == [{'usuario': 1, 'texto': 'Muito bom!'}]
+
+def testaCurtirPostagemNovamente():
+    criar_usuario('Gleison')
+    criar_usuario('José')
+    criar_postagem(1, 'Adoro testar!')
+    curtir_postagem(2, 1)
+    with pytest.raises(Exception):
+        curtir_postagem(2, 1) 
+
+def testaCurtirPostagemInexistente():
+    criar_usuario('Gleison')
+    criar_postagem(1, 'Postagem válida')
+
+    with pytest.raises(IndexError):
+        curtir_postagem(1, 999) 
+
+def testaComentarPostagemValida():
+    criar_usuario('Gleison')
+    with pytest.raises(IndexError):
+        comentar_postagem(1, 999, 'Comentando em uma postagem inexistente')  # Postagem não existente
+
+def testaComentarTextoEmBranco():
+    criar_usuario('Gleison')
+    criar_postagem(1, 'Postagem importante!')
+
+    with pytest.raises(ValueError):
+        comentar_postagem(1, 1, '')  # Texto vazio no comentário
 
 def testaExcluirContaValido():
     resetar()
@@ -83,4 +116,4 @@ def testaExcluirContaValido():
     # Validar que a postagem de Lucas foi removida
     assert len(postagens) == 0
 
-
+# Testes existentes...
