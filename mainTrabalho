@@ -1,5 +1,3 @@
-# Trabalho-Pytest-Teste-de-Sofwares
-
 # variáveis
 usuarios = []
 postagens = []
@@ -72,6 +70,8 @@ def curtir_postagem(usuario, postagem):
         raise IndexError("Postagem não encontrada")
 
 def comentar_postagem(usuario, postagem, texto):
+    if not texto.strip():
+        raise ValueError("O comentário não pode ser vazio")
     try:
         postagem = encontrar_postagem_por_id(postagem)
         comentario = {
@@ -189,4 +189,5 @@ def exibir_menu():
             print("Opção inválida. Tente novamente.")
 
 # Para testar a interface do menu
-exibir_menu()
+#exibir_menu()
+
